@@ -1,0 +1,115 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{parskip}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{titling}
+\usepackage[font=small,labelfont=bf]{caption}
+
+\usepackage{graphicx} 
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\lstset{
+    basicstyle=\small\ttfamily,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true,
+    columns=fullflexible
+}
+
+\title{\textbf{Project 2: Veterinarian Recommendation}\\[0.4em]
+\large Data Analytics --- Spring 2026}
+\author{Mehmet Fatih Tekin \and Vittoria Scocco}
+% \date{19.04.2026}
+
+\begin{document}
+\setlength{\droptitle}{-2cm}
+\maketitle
+
+
+\noindent The full source code for this project is available on \href{https://github.com/Vitto28/Vet_Recc}{GitHub}.
+
+% \noindent The full source code and notebook for this project are available on GitHub at:\\
+% \url{https://github.com/Vitto28/Suspicious_Passages}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Overview}
+\label{sec:overview}
+% ─────────────────────────────────────────────────────────────────────────────
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Environment Setup and Running the Notebook}
+\label{sec:setup}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Place the dataset under a local directory of your choice. The notebook dynamic path resolution, the order of which is given on the \texttt{README.md} file. 
+
+We recommend creating a file named \texttt{paths.local.json} in the project root with the path to the data, like so:
+\begin{lstlisting}
+{
+  "data_dir": "/absolute/path/to/your/data"
+}
+\end{lstlisting}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Data Exploration}
+\label{sec:exploration}
+% ─────────────────────────────────────────────────────────────────────────────
+Before any processing, the notebook performs a series of checks to understand the state of the dataset and flag inconsistencies.
+
+\subsection{Exploring and visualizing the data}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Pre-processing}
+\label{sec:preprocessing}
+% ─────────────────────────────────────────────────────────────────────────────
+
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Recommender system}
+\label{sec:lsh}
+% ─────────────────────────────────────────────────────────────────────────────
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Results and Discussion}
+\label{sec:results}
+% ─────────────────────────────────────────────────────────────────────────────
+
+
+\subsection{Summary?}
+
+\section{Contributions}
+
+% ─────────────────────────────────────────────────────────────────────────────
+% REferences
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{thebibliography}{9}
+
+% \bibitem{pan2010}
+% Martin Potthast, Benno Stein, Alberto Barrón-Cedeño, and Paolo Rosso.
+% \textit{An Evaluation Framework for Plagiarism Detection}.
+% In \textit{Proceedings of the 23rd International Conference on Computational Linguistics (COLING 2010)}, pages 997-1005, 2010.
+% Dataset available at: \url{https://pan.webis.de/clef10/pan10-web/plagiarism-detection.html}
+
+% \bibitem{lsh_github}
+% MikaBattineni.
+% \textit{Plagiarism-Detection-LSH}.
+% GitHub repository, 2021.
+% \url{https://github.com/MikaBattineni/Plagiarism-Detection-LSH}
+
+\end{thebibliography}
+
+\end{document}
