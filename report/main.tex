@@ -49,7 +49,9 @@ There are two datasets. The ratings file contains \texttt{user\_id}, \texttt{asi
  
 \subsection{Ratings dataset}
  
-Table~\ref{tab:ratings_stats} summarises the key figures. As shown in Figure~\ref{fig:rating_dist}, the distribution is heavily skewed: roughly 60\,\% of all reviews are 5-star, producing a characteristic J-shape typical of voluntary online reviews. Both reviews-per-user and reviews-per-item follow power-law distributions, with most users having reviewed only one or two products. The resulting interaction matrix has a sparsity above 99.99\,\%, which can make collaborative filtering difficult.
+Table~\ref{tab:ratings_stats} summarises the key figures. As shown in Figure~\ref{fig:rating_dist}, the distribution is heavily skewed: roughly 60\,\% of all reviews are 5-star, producing a characteristic J-shape typical of voluntary online reviews.
+ 
+Both reviews-per-user and reviews-per-item follow power-law distributions, as shown in Figure~\ref{fig:review_activity_dist}. In this dataset, there are 740,985 unique users and 103,288 items, but activity is highly concentrated: the median reviews per user is 1 (max 199), and the median reviews per item is 2 (max 4,109). Notably, 538,197 users (72.6\,\%) have contributed only a single review. The resulting interaction matrix has a sparsity of 99.9984\,\%, which presents a significant challenge for collaborative filtering models.
  
 \begin{table}[h]
 \centering
@@ -77,6 +79,13 @@ Std deviation       & 1.33 \\
   \includegraphics[width=0.85\linewidth]{figures/rating_distribution.png}
   \caption{Rating frequency (left) and cumulative distribution (right). About 60\,\% of reviews are 5-star.}
   \label{fig:rating_dist}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/review_activity_dist.png}
+  \caption{Distribution of reviews per user (left) and per item (right). Both follow power-law distributions with a high concentration of low-activity participants.}
+  \label{fig:review_activity_dist}
 \end{figure}
  
 \subsection{Metadata dataset}
