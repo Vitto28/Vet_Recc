@@ -94,11 +94,21 @@ The most notable quality issue is high missingness: over 55\,\% of products lack
  
 Prices are highly right-skewed (median $\sim\$15$, mean $\sim\$30$), with a long tail of expensive items such as kennels and aquarium equipment that are not data errors. As shown in Figure~\ref{fig:price_rating}, there is no meaningful correlation between price and average rating ($r = 0.029$). Items with more reviews converge toward the overall mean rating of 4.11, while low-review-count items show much higher variance. KONG is the most reviewed brand, followed by PetSafe and Midwest Homes for Pets; ratings for less popular brands are less reliable due to smaller sample sizes.
  
+Sales rank is similarly right-skewed and required log-transformation to produce a more interpretable metric for modeling. As shown in Figure~\ref{fig:sales_rank_dist}, there is a strong negative correlation between log-sales-rank and review volume ($r \approx -0.58$), confirming that lower rank numbers effectively track product popularity. In contrast, the relationship with average rating is much weaker ($r \approx -0.063$), reflecting that popularity and user satisfaction are distinct dimensions. The catalogue is primarily composed of products for \textit{Dogs}, \textit{Cats}, and \textit{Fish \& Aquatics}, which together form the core of the leaf-level category assignments.
+
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.85\linewidth]{figures/price_vs_rating.png}
   \caption{Price vs.\ average product rating (left) and average rating by review-count quintile (right). No meaningful price--rating correlation; high-review items converge to the mean.}
   \label{fig:price_rating}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/sales_rank.png}
+  \includegraphics[width=0.85\linewidth]{figures/sales_rank_vs.png}
+  \caption{Sales rank distribution and correlations. The raw distribution is highly skewed (top); lower sales ranks correlate with higher review volume, but show little relationship with average rating (bottom).}
+  \label{fig:sales_rank_dist}
 \end{figure}
  
 % ─────────────────────────────────────────────────────────────────────────────
@@ -108,7 +118,7 @@ Prices are highly right-skewed (median $\sim\$15$, mean $\sim\$30$), with a long
  
 \textbf{Timestamps.} Unix timestamps are converted to \texttt{datetime}, with \texttt{year} and \texttt{month} columns extracted for temporal exploration.
  
-\textbf{Missing value handling.} We compared dropping missing metadata with filling missing values. Dropping products with missing price retains 90.75\,\% of ratings, while dropping products with missing brand retains only 74.74\,\% of ratings and 44.38\,\% of metadata products. Because brand missingness is broad and category-dependent, dropping all missing-brand products would remove too much catalogue coverage. We therefore keep these entries and replace missing brands with \texttt{"Unknown"}.
+\textbf{Missing value handling.} We compared dropping missing metadata with filling missing values. Dropping products with missing price retains 90.75\,\% of ratings, while dropping products with missing brand retains only 74.74\,\% of ratings and 44.38\,\% of metadata products. Because brand missingness is broad and category-dependent, dropping all missing-brand products would remove too much catalogue coverage. We therefore keep these entries, and for those who are missing the brand, we replace it with the value \texttt{"Unknown"}.
 
 For price, we inspected both a global median and category-level medians. Category medians are more specific (e.g., toys and snacks are much cheaper than beds or carriers), but the final rating-prediction models do not rely directly on price. For the cleaned metadata table, missing prices are filled with the global median (\$15.48) and a binary flag \texttt{price\_was\_missing} is retained. Sales rank is treated similarly using its median and \texttt{rank\_was\_missing}. Description and title gaps are filled with empty strings or \texttt{"Unknown"}; missing \texttt{related} entries become empty dictionaries.
  
