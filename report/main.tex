@@ -38,14 +38,14 @@
 \label{sec:setup}
 % ─────────────────────────────────────────────────────────────────────────────
  
-Place the dataset under a local directory of your choice. The notebook dynamic path resolution, the order of which is given on the \texttt{README.md} file. We recommend creating a file named \texttt{paths.local.json} in the project root with the path to the data, like so: \texttt{\{"data\_dir": "/absolute/path/to/your/data"\}}
+Place the dataset under a local directory of your choice. The notebook resolves the data path dynamically, following the order described in \texttt{README.md}. A local \texttt{paths.local.json} file can be used to point the notebook to the dataset without hard-coding personal paths.
  
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Data Exploration}
 \label{sec:exploration}
 % ─────────────────────────────────────────────────────────────────────────────
  
-Two are two datasets: one containing \textbf{ratings} (\texttt{ratings\_Pet\_supplies.csv}) with fields \texttt{user\_id}, \texttt{asin}, \texttt{rating}, and \texttt{timestamp}; and one containing product \textbf{metadata} (\texttt{meta\_Pet\_supplies.json}) with product attributes (title, brand, price, sales rank, categories, related items).
+There are two datasets. The ratings file contains \texttt{user\_id}, \texttt{asin}, \texttt{rating}, and \texttt{timestamp}. The metadata file contains product attributes such as title, brand, price, sales rank, categories, and related items.
  
 \subsection{Ratings dataset}
  
@@ -58,14 +58,14 @@ Table~\ref{tab:ratings_stats} summarises the key figures. As shown in Figure~\re
 \toprule
 \textbf{Statistic} & \textbf{Value} \\
 \midrule
-Total reviews       & $\sim$1.2M \\
-Unique users        & $\sim$740\,k \\
-Unique items        & $\sim$145\,k \\
+Total reviews       & 1,235,316 \\
+Unique users        & 740,985 \\
+Unique items        & 103,288 \\
 Mean rating         & 4.11 \\
 Median rating       & 5.0 \\
-Std deviation       & 1.39 \\
-\% 5-star reviews   & $\sim$60\% \\
-\% 1-star reviews   & $\sim$12\% \\
+Std deviation       & 1.33 \\
+\% 5-star reviews   & 60.2\% \\
+\% 1-star reviews   & 9.5\% \\
 \bottomrule
 \end{tabular}
 \caption{Summary statistics for the ratings dataset.}
@@ -81,9 +81,9 @@ Std deviation       & 1.39 \\
  
 \subsection{Metadata dataset}
  
-The most notable quality issue is high missingness: over 50\,\% of products lack a brand and roughly 25\,\% have no price. Brand missingness spans many categories, but is higher for clothing, accessories, and carriers. Simulating a full drop of products with missing brand or price removes a large share of the catalogue and the ratings that reference it, so rather than straight up deleting these entries, it could be worth it to fill in these values with "defaults" (see Section~\ref{sec:preprocessing}).
+The most notable quality issue is high missingness: over 55\,\% of products lack a brand and roughly 25\,\% have no price. Brand missingness spans many categories, but is higher for clothing, accessories, carriers, collars, and beds. Dropping products with missing brand or price removes a large share of the catalogue and the ratings that reference it. Therefore, missing-value handling is treated as a modelling decision rather than a purely technical cleaning step (see Section~\ref{sec:preprocessing}).
  
-Prices are highly right-skewed (median $\sim\$15$, mean $\sim\$30$), with a long tail of expensive items (kennels, aquarium equipment) that are not data errors. As shown in Figure~\ref{fig:price_rating}, there is no meaningful correlation between price and average rating ($r \approx 0$). Items with more reviews converge toward the overall mean (roughly .1), while low-review-count items show much higher variance. KONG is the most reviewed brand, followed by PetSafe and Midwest Homes for Pets; ratings for less popular brands are less reliable due to smaller sample sizes.
+Prices are highly right-skewed (median $\sim\$15$, mean $\sim\$30$), with a long tail of expensive items such as kennels and aquarium equipment that are not data errors. As shown in Figure~\ref{fig:price_rating}, there is no meaningful correlation between price and average rating ($r = 0.029$). Items with more reviews converge toward the overall mean rating of 4.11, while low-review-count items show much higher variance. KONG is the most reviewed brand, followed by PetSafe and Midwest Homes for Pets; ratings for less popular brands are less reliable due to smaller sample sizes.
  
 \begin{figure}[h]
   \centering
@@ -97,29 +97,98 @@ Prices are highly right-skewed (median $\sim\$15$, mean $\sim\$30$), with a long
 \label{sec:preprocessing}
 % ─────────────────────────────────────────────────────────────────────────────
  
-\textbf{Timestamps.} Unix timestamps are converted to \texttt{datetime}, with \texttt{year} and \texttt{month} columns extracted for time-aware splitting.
+\textbf{Timestamps.} Unix timestamps are converted to \texttt{datetime}, with \texttt{year} and \texttt{month} columns extracted for temporal exploration.
  
-\textbf{Missing value handling.} Missing values are filled rather than dropped to preserve coverage. Brand \texttt{NaN}s are replaced with \texttt{"Unknown"}. Price and sales rank are filled with their respective global medians; binary missingness flags (\texttt{price\_was\_missing}, \texttt{rank\_was\_missing}) are retained so models can distinguish the engineered values from the observed values. Description and title gaps are filled with empty strings or \texttt{"Unknown"}; missing \texttt{related} entries become empty dicts.
+\textbf{Missing value handling.} We compared dropping missing metadata with filling missing values. Dropping products with missing price retains 90.75\,\% of ratings, while dropping products with missing brand retains only 74.74\,\% of ratings and 44.38\,\% of metadata products. Because brand missingness is broad and category-dependent, dropping all missing-brand products would remove too much catalogue coverage. We therefore keep these entries and replace missing brands with \texttt{"Unknown"}.
+
+For price, we inspected both a global median and category-level medians. Category medians are more specific (e.g., toys and snacks are much cheaper than beds or carriers), but the final rating-prediction models do not rely directly on price. For the cleaned metadata table, missing prices are filled with the global median (\$15.48) and a binary flag \texttt{price\_was\_missing} is retained. Sales rank is treated similarly using its median and \texttt{rank\_was\_missing}. Description and title gaps are filled with empty strings or \texttt{"Unknown"}; missing \texttt{related} entries become empty dictionaries.
  
 \textbf{Log-transformation.} Both \texttt{price} and \texttt{sales\_rank} are log-transformed to reduce skewness and limit the influence of extreme values, producing more symmetric distributions better suited for modelling.
  
-\textbf{Merging.} Ratings are aggregated per item (average rating, review count, std, date range) and left-joined to the cleaned metadata on \texttt{asin}, producing the item-level table used as input to the recommender pipeline.
+\textbf{Merging.} Ratings are aggregated per item (average rating, review count, standard deviation, date range) and left-joined to the cleaned metadata on \texttt{asin}, producing an item-level table with 103,288 rated products.
  
  
 % ─────────────────────────────────────────────────────────────────────────────
-\section{Recommender system}
-\label{sec:lsh}
+\section{Recommender Systems}
+\label{sec:recommenders}
 % ─────────────────────────────────────────────────────────────────────────────
+
+The assignment asks us to predict ratings for user--item pairs in a held-out test sample. We therefore first build two rating-prediction models and evaluate them with MAE and RMSE. The exploratory analysis showed that user histories are extremely sparse, so both models use item-level evidence heavily.
+
+\subsection{Model 1: Regularized bias baseline}
+
+The first model predicts each rating as a sum of the global mean, an item bias, and a user bias:
+
+\[
+\hat r_{ui} = \mu + b_i + b_u
+\]
+
+where $\mu$ is the training-set mean rating, $b_i$ is the regularized item effect, and $b_u$ is the regularized user effect. Regularization shrinks biases for users or items with little evidence, which is important because most users have only one rating. If a user or item is unseen in training, its bias is set to zero and the prediction falls back toward the global average.
+
+\subsection{Model 2: Hybrid item-based recommender}
+
+The second model starts from Model 1 and adds a neighbourhood adjustment based on products the user rated in the training set. For a target item, the model searches the user's rated products for similar or related items. Similarity uses three signals: Amazon related-product links (\texttt{also\_bought}, \texttt{bought\_together}, \texttt{buy\_after\_viewing}, \texttt{also\_viewed}), brand match, and category overlap. The prediction is:
+
+\[
+\hat r_{ui}^{hybrid} = \hat r_{ui}^{baseline} + \Delta_{ui}
+\]
+
+where $\Delta_{ui}$ is a weighted average of the user's residual ratings on neighbouring products. If no useful neighbours are found, the model returns the baseline prediction.
+
+\subsection{Model 3: Product-centered recommender}
+
+The first two models focus on exact rating prediction. Because the EDA shows limited user history, we also build a product-centered recommender that uses stronger item-level signals. It supports two practical tasks: recommending top products within a category and recommending products related to a given product.
+
+Each product receives a quality score based on Bayesian weighted rating, review-count confidence, and sales-rank popularity:
+
+\[
+score = 0.55 \cdot rating\_score + 0.30 \cdot confidence + 0.15 \cdot sales\_rank\_score
+\]
+
+For related-product recommendations, candidates are first collected from Amazon's related-item fields and then re-ranked using both relatedness strength and product quality.
  
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Results and Discussion}
 \label{sec:results}
 % ─────────────────────────────────────────────────────────────────────────────
  
- 
-\subsection{Summary?}
+\subsection{Rating prediction}
+
+Table~\ref{tab:model_results} compares the two rating-prediction models against a global-mean baseline. Model 1 improves substantially over predicting the same mean rating for every test row. Model 2 gives a smaller additional improvement overall, mainly because its item-neighbourhood component has limited coverage.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Model} & \textbf{MAE} & \textbf{RMSE} & \textbf{Coverage} \\
+\midrule
+Global mean baseline & 1.0708 & 1.3322 & 100.0\% \\
+Regularized bias baseline & 0.9747 & 1.2422 & 100.0\% \\
+Hybrid item-based recommender & 0.9675 & 1.2373 & 22.2\% \\
+\bottomrule
+\end{tabular}
+\caption{Rating-prediction results on the held-out test set. Coverage for the hybrid model indicates the share of test rows where a related-item neighbourhood was found; otherwise it falls back to the bias baseline.}
+\label{tab:model_results}
+\end{table}
+
+The bias baseline performs best when both the user and item were seen during training (MAE 0.908). Error increases for unseen users and items, reaching MAE 1.165 when both are unseen. This confirms that cold-start cases are a major limitation.
+
+The hybrid model is useful when it finds neighbourhood evidence. For rows where at least one related/similar rated product exists, MAE improves from 0.8890 to 0.8566. The effect becomes stronger as neighbourhood size grows: with 11 or more neighbours, MAE improves from 0.7985 to 0.7358. However, only 22.15\,\% of test rows have such evidence, so the overall gain is modest.
+
+\subsection{Product-centered recommendation}
+
+The product-centered recommender produces more practical recommendations in cases where user history is weak. For example, in the \textit{Squeak Toys} category, the top results include highly reviewed Kyjen and KONG products, balancing average rating with review count and sales-rank popularity. For a FURminator deShedding tool, the related-product recommender returns grooming products, shampoos, brushes, and other shedding tools, which are coherent with the seed product.
+
+This does not replace rating prediction, but it addresses the main data limitation: item-level signals are richer and more stable than user-level histories. The results suggest that the dataset is better suited for item-centered and product-centered recommendation than for strong individual personalization.
+
+\subsection{Main limitations}
+
+The main limitation is sparsity: 72.6\,\% of users have only one review. This makes it difficult to infer stable user preferences. The rating distribution is also skewed toward 5 stars, so low ratings are hard to predict: Model 1 has MAE 2.76 on true 1-star ratings but only 0.76 on true 5-star ratings. Finally, metadata is incomplete, especially brand and price, so metadata-based signals must be used cautiously.
  
 \section{Contributions}
+
+Vittoria focused mainly on the exploratory data analysis, including the initial data inspection, visualizations, and preprocessing discussion. Fatih focused mainly on the recommendation models and their evaluation. The report was written together, and throughout the project both members coordinated closely, reviewed each part, and discussed the main decisions and interpretations.
  
 % ─────────────────────────────────────────────────────────────────────────────
 % REferences
